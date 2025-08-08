@@ -1,0 +1,46 @@
+{
+  "name": "support-chatboks",
+  "version": "1.0.0",
+  "description": "A support chatbot application with React frontend and Node.js backend",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "server": "nodemon server/index.js",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install",
+    "install-server": "npm install",
+    "install-all": "npm run install-server && npm run install-client",
+    "dev-full": "concurrently \"npm run server\" \"npm run client\"",
+    "deploy": "npm run build && pm2 start server/index.js --name zymo-chat --env production",
+    "deploy:windows": "windows-deploy.bat"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^6.1.5",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "socket.io": "^4.6.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "nodemon": "^3.1.10"
+  },
+  "keywords": [
+    "chatbot",
+    "support",
+    "react",
+    "nodejs",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "MIT"
+}

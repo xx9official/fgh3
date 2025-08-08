@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZYMO Chat Widget - Enhanced Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .chat-widget * {
+            box-sizing: border-box;
+        }
+        
+        /* Chat Button */
+        .chat-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .chat-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        /* Chat Window */
+        .chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 380px;
+            height: 520px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideInUp 0.3s ease;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chat-window.open {
+            display: flex;
+        }
+        
+        /* Chat Header */
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .close-conversation-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .close-conversation-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .supporter-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .supporter-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #667eea;
+        }
+        
+        .supporter-status {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .close-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.visitor {
+            align-items: flex-end;
+        }
+        
+        .message.agent {
+            align-items: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .message.visitor .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.agent .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e5e9;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+        
+        /* Enhanced Problem Description Form - Better Readability */
+        .problem-form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            padding: 0;
+            max-height: 520px;
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: #667eea;
+            color: white;
+            padding: 20px 25px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .form-header h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .form-header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.95;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+        
+        .form-content {
+            flex: 1;
+            padding: 20px 25px;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 16px;
+            letter-spacing: -0.3px;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            min-height: 120px;
+            max-height: 120px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            color: #2d3748;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .form-group textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .form-group textarea::placeholder {
+            color: #a0aec0;
+            font-style: normal;
+            font-weight: 400;
+        }
+        
+        .submit-button {
+            background: linear-gradient(135deg, #667eea 0%, #5a6fd8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.3px;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-button:active {
+            transform: translateY(0);
+        }
+        
+        .submit-button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .submit-button .icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .support-link {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .support-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        
+        .support-link a:hover {
+            color: #5a6fd8;
+            text-decoration: underline;
+        }
+        
+        /* Waiting Status */
+        .waiting-status {
+            text-align: center;
+            padding: 40px 25px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            margin: 25px;
+            color: #856404;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+        
+        .waiting-status h4 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .waiting-status p {
+            margin: 0;
+            font-size: 15px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #856404;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e1e5e9;
+            font-size: 13px;
+            color: #4a5568;
+            font-style: italic;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Chat Input */
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            border: 1px solid #e1e5e9;
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        .message-input:focus {
+            border-color: #667eea;
+        }
+        
+        .send-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        
+        .send-button:hover {
+            background: #5a6fd8;
+        }
+        
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin: 20px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .chat-window {
+                width: calc(100vw - 40px);
+                right: -10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ZYMO Chat Widget - Enhanced Test</h1>
+        <p>This is an enhanced test page to demonstrate the ZYMO chat widget with problem description, waiting status, and supporter claiming features.</p>
+        
+        <h2>New Features to Test:</h2>
+        <ul>
+            <li>Problem description form when you first open the chat</li>
+            <li>Waiting status while supporter claims the chat</li>
+            <li>Supporter profile and online/offline status</li>
+            <li>Typing indicators</li>
+            <li>Support link for illegal activities reporting</li>
+        </ul>
+        
+        <h2>Test Flow:</h2>
+        <ol>
+            <li>Click the chat button</li>
+            <li>Fill out the problem description form</li>
+            <li>See the waiting status</li>
+            <li>Wait for "supporter" to claim the chat (simulated)</li>
+            <li>Chat with the supporter</li>
+        </ol>
+        
+        <p><em>Note: This is a demo widget. The supporter claiming is simulated and will happen automatically after 3 seconds.</em></p>
+    </div>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <!-- Chat Button -->
+        <button class="chat-button" onclick="openChat()">
+            💬
+        </button>
+        
+        <!-- Chat Window -->
+        <div class="chat-window" id="chatWindow">
+            <!-- Chat Header -->
+            <div class="chat-header" id="chatHeader">
+                <div class="supporter-info" id="supporterInfo" style="display: none;">
+                    <div class="supporter-avatar" id="supporterAvatar">👤</div>
+                    <div>
+                        <h3 id="supporterName">Support Agent</h3>
+                        <div class="supporter-status" id="supporterStatus">Online</div>
+                    </div>
+                </div>
+                <h3 id="headerTitle">Chat with us</h3>
+                <div class="header-actions">
+                    <button class="close-conversation-btn" onclick="closeConversation()" id="closeConversationBtn" style="display: none;">
+                        End Chat
+                    </button>
+                    <button class="close-button" onclick="closeChat()">×</button>
+                </div>
+            </div>
+            
+            <!-- Problem Description Form -->
+            <div class="problem-form" id="problemForm">
+                <div class="form-header">
+                    <h3>👋 How can we help you?</h3>
+                    <p>Tell us about your issue and we'll connect you with the right person</p>
+                </div>
+                <div class="form-content">
+                    <div class="form-group">
+                        <label for="problemDescription">Describe your problem:</label>
+                        <textarea id="problemDescription" 
+                                  placeholder="Please describe your issue in detail. The more information you provide, the better we can assist you..."></textarea>
+                    </div>
+                    <button class="submit-button" onclick="submitProblem()" id="submitBtn">
+                        <span class="icon">🚀</span>
+                        Start Chat
+                    </button>
+                    <div class="support-link">
+                        <a href="#" onclick="contactSupport()">
+                            <span>⚠️</span>
+                            Contact ZYMO support
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Waiting Status -->
+            <div class="waiting-status" id="waitingStatus" style="display: none;">
+                <h4>
+                    <span class="spinner"></span>
+                    Waiting for a supporter
+                </h4>
+                <p>Your chat will be claimed by the next available agent. Please wait...</p>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages" style="display: none;">
+                <div class="welcome-message">
+                    Hello! How can we help you today?
+                </div>
+            </div>
+            
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <span id="typingText">Support Agent is typing...</span>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="chat-input" id="chatInput" style="display: none;">
+                <div class="input-container">
+                    <input type="text" class="message-input" id="messageInput" 
+                           placeholder="Type your message..." 
+                           onkeypress="handleKeyPress(event)"
+                           oninput="handleTyping()">
+                    <button class="send-button" onclick="sendMessage()" id="sendButton">
+                        ➤
+                    </button>
+                </div>
+                <!-- Powered by ZYMO -->
+                <div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e1e5e9; font-size: 11px; color: #999;">
+                    Powered by ZYMO
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isChatOpen = false;
+        let messages = [];
+        let isWaiting = false;
+        let isClaimed = false;
+        let typingTimeout = null;
+        let conversationId = null;
+        
+        // Load saved conversation on page load
+        window.addEventListener('load', function() {
+            loadSavedConversation();
+        });
+        
+        function openChat() {
+            isChatOpen = true;
+            const chatWindow = document.getElementById('chatWindow');
+            const chatButton = document.querySelector('.chat-button');
+            
+            chatWindow.classList.add('open');
+            chatButton.style.display = 'none';
+            
+            // Check if there's a saved conversation
+            const savedConversation = getSavedConversation();
+            if (savedConversation && savedConversation.messages.length > 0) {
+                // Restore saved conversation
+                restoreConversation(savedConversation);
+            } else {
+                // Show problem form initially
+                showProblemForm();
+            }
+        }
+        
+        function closeChat() {
+            isChatOpen = false;
+            const chatWindow = document.getElementById('chatWindow');
+            const chatButton = document.querySelector('.chat-button');
+            
+            chatWindow.classList.remove('open');
+            chatButton.style.display = 'flex';
+            
+            // Don't reset chat - just close the window
+            // Chat will be preserved for next time
+        }
+        
+        function showProblemForm() {
+            document.getElementById('problemForm').style.display = 'flex';
+            document.getElementById('waitingStatus').style.display = 'none';
+            document.getElementById('chatMessages').style.display = 'none';
+            document.getElementById('chatInput').style.display = 'none';
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('supporterInfo').style.display = 'none';
+            document.getElementById('headerTitle').style.display = 'block';
+        }
+        
+        function submitProblem() {
+            const description = document.getElementById('problemDescription').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!description) {
+                // Add visual feedback
+                const textarea = document.getElementById('problemDescription');
+                textarea.style.borderColor = '#ff6b6b';
+                textarea.focus();
+                
+                setTimeout(() => {
+                    textarea.style.borderColor = '#e2e8f0';
+                }, 2000);
+                
+                return;
+            }
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="icon">⏳</span> Submitting...';
+            
+            // Hide problem form and show waiting status
+            setTimeout(() => {
+                document.getElementById('problemForm').style.display = 'none';
+                document.getElementById('waitingStatus').style.display = 'block';
+                
+                isWaiting = true;
+                
+                // Simulate supporter claiming after 3 seconds
+                setTimeout(() => {
+                    claimChat();
+                }, 3000);
+            }, 500);
+        }
+        
+        function claimChat() {
+            isWaiting = false;
+            isClaimed = true;
+            
+            // Hide waiting status and show chat
+            document.getElementById('waitingStatus').style.display = 'none';
+            document.getElementById('chatMessages').style.display = 'block';
+            document.getElementById('chatInput').style.display = 'block';
+            document.getElementById('supporterInfo').style.display = 'flex';
+            document.getElementById('headerTitle').style.display = 'none';
+            document.getElementById('closeConversationBtn').style.display = 'block';
+            
+            // Add welcome message from supporter
+            addMessage('Hi! I\'m Sarah, your support agent. I\'ve claimed your chat and I\'m here to help you with your issue.', 'agent');
+            
+            // Focus on input
+            document.getElementById('messageInput').focus();
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'visitor');
+                input.value = '';
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Simulate supporter response after 2 seconds
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addMessage('Thanks for your message! I\'m working on resolving your issue. This is a demo response.', 'agent');
+                }, 2000);
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function handleTyping() {
+            // Show typing indicator for visitor
+            showTypingIndicator('You are typing...');
+            
+            // Clear previous timeout
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+            
+            // Hide typing indicator after 1 second of no typing
+            typingTimeout = setTimeout(() => {
+                hideTypingIndicator();
+            }, 1000);
+        }
+        
+        function showTypingIndicator(text = 'Support Agent is typing...') {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('typingText').textContent = text;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${text}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Store message
+            messages.push({
+                text,
+                sender,
+                timestamp: new Date()
+            });
+            
+            // Save conversation after each message
+            saveConversation();
+        }
+        
+        function contactSupport() {
+            alert('This would open a form to contact ZYMO support for reporting illegal activities or other issues.');
+        }
+        
+        function closeConversation() {
+            if (confirm('Are you sure you want to end this conversation? This action cannot be undone.')) {
+                // Clear saved conversation
+                localStorage.removeItem('zymo_chat_conversation');
+                conversationId = null;
+                
+                // Reset chat state
+                resetChat();
+                
+                // Hide close conversation button
+                document.getElementById('closeConversationBtn').style.display = 'none';
+                
+                // Show problem form
+                showProblemForm();
+            }
+        }
+        
+        function resetChat() {
+            isWaiting = false;
+            isClaimed = false;
+            messages = [];
+            document.getElementById('problemDescription').value = '';
+            document.getElementById('chatMessages').innerHTML = '<div class="welcome-message">Hello! How can we help you today?</div>';
+            
+            // Reset submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="icon">🚀</span> Start Chat';
+        }
+        
+        function saveConversation() {
+            const conversation = {
+                id: conversationId || Date.now().toString(),
+                messages: messages,
+                isClaimed: isClaimed,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('zymo_chat_conversation', JSON.stringify(conversation));
+            conversationId = conversation.id;
+        }
+        
+        function getSavedConversation() {
+            const saved = localStorage.getItem('zymo_chat_conversation');
+            return saved ? JSON.parse(saved) : null;
+        }
+        
+        function loadSavedConversation() {
+            const saved = getSavedConversation();
+            if (saved) {
+                conversationId = saved.id;
+                messages = saved.messages || [];
+                isClaimed = saved.isClaimed || false;
+            }
+        }
+        
+        function restoreConversation(savedConversation) {
+            messages = savedConversation.messages || [];
+            isClaimed = savedConversation.isClaimed || false;
+            conversationId = savedConversation.id;
+            
+            // Show chat interface
+            document.getElementById('problemForm').style.display = 'none';
+            document.getElementById('waitingStatus').style.display = 'none';
+            document.getElementById('chatMessages').style.display = 'block';
+            document.getElementById('chatInput').style.display = 'block';
+            
+            // Show supporter info if claimed
+            if (isClaimed) {
+                document.getElementById('supporterInfo').style.display = 'flex';
+                document.getElementById('headerTitle').style.display = 'none';
+                document.getElementById('closeConversationBtn').style.display = 'block';
+            }
+            
+            // Restore messages
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '<div class="welcome-message">Hello! How can we help you today?</div>';
+            
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.sender}`;
+                
+                const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">${msg.text}</div>
+                    <div class="message-time">${time}</div>
+                `;
+                
+                messagesContainer.appendChild(messageDiv);
+            });
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+  
